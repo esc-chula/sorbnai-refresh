@@ -1,10 +1,15 @@
+import { useSuspenseQuery } from '@tanstack/react-query'
+import { Link, createFileRoute, useNavigate } from '@tanstack/react-router'
+import { FileWarningIcon, Search } from 'lucide-react'
+import { useMemo, useState } from 'react'
+import Fuse from 'fuse.js'
 import { Button } from '@/components/ui/button'
 import {
   Card,
-  CardHeader,
-  CardTitle,
   CardContent,
   CardFooter,
+  CardHeader,
+  CardTitle,
 } from '@/components/ui/card'
 import {
   Empty,
@@ -15,75 +20,70 @@ import {
   EmptyTitle,
 } from '@/components/ui/empty'
 import { Input } from '@/components/ui/input'
-import { thaiExamRoomsQueryOptions } from '@/data/thai-exam-rooms'
+import { examRoomsQuery } from '@/data/thai-exam-rooms'
 import { cn } from '@/lib/utils'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
-import { useSuspenseQuery } from '@tanstack/react-query'
-import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
-import { FileWarningIcon, Search } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useLocalStorage } from '@/hooks/use-local-storage'
-import Fuse from 'fuse.js'
-import { ThaiClasses } from '@/components/thai-classes'
+import { ClassList } from '@/components/class-list'
 
 export type ShowMode = 'all' | 'in-range'
 export type TabMode = 'thai' | 'ise'
 
-export const Route = createFileRoute('/_protected/select-classes')({
-  component: RouteComponent,
+export const Route = createFileRoute('/_protected/select-exams')({
+  component: SelectExams,
 })
 
-function RouteComponent() {
+function SelectExams() {
   const navigate = useNavigate({ from: Route.fullPath })
-  const { studentId, selectedClasses } = Route.useSearch()
-  const { data: thaiExamRooms } = useSuspenseQuery(
-    thaiExamRoomsQueryOptions(studentId)
-  )
+  const { studentId, exams } = Route.useSearch()
+  const { data: examRooms } = useSuspenseQuery(examRoomsQuery(studentId))
   const [showMode, setShowMode] = useState<ShowMode>('in-range')
 
-  const thaiClasses = useMemo(
+  const classes = useMemo(
     () =>
-      thaiExamRooms.filter(
+      examRooms.filter(
         ({ code, inRange }) =>
-          selectedClasses.includes(code) || showMode !== 'in-range' || inRange
+          exams.includes(code) || showMode !== 'in-range' || inRange
       ),
-    [thaiExamRooms, selectedClasses, showMode]
+    [examRooms, exams, showMode]
   )
   const fuse = useMemo(
     () =>
-      new Fuse(thaiClasses, {
+      new Fuse(classes, {
         keys: ['code', 'title'],
         threshold: 0.3,
       }),
-    [thaiClasses]
+    [classes]
   )
 
   const [search, setSearch] = useState<string>('')
   const [tab, setTab] = useLocalStorage<TabMode>('tab', 'thai', {
     initializeWithValue: false,
   })
-  const [_, setSelectedClassesLocal] = useLocalStorage<string[]>(
-    'selected-classes',
+  const [_, setStoredExams] = useLocalStorage<Array<string>>(
+    'selected-exams',
     [],
-    { initializeWithValue: false }
+    {
+      initializeWithValue: false,
+    }
   )
 
-  const setSelectedClasses = (classes: string[]) => {
-    setSelectedClassesLocal(classes)
+  const setExams = (newExams: Array<string>) => {
+    setStoredExams(newExams)
     navigate({
       search: (old) => ({
         ...old,
-        selectedClasses: classes,
+        exams: newExams,
       }),
     })
   }
 
-  const searchedThaiClasses = useMemo(() => {
-    if (!search) return thaiClasses
+  const filtered = useMemo(() => {
+    if (!search) return classes
     return fuse.search(search).map(({ item }) => item)
-  }, [fuse, search, thaiClasses])
+  }, [fuse, search, classes])
 
   if (!studentId) {
     return (
@@ -92,14 +92,14 @@ function RouteComponent() {
           <EmptyMedia variant="icon">
             <FileWarningIcon />
           </EmptyMedia>
-          <EmptyTitle>Invalid Student ID</EmptyTitle>
+          <EmptyTitle>รหัสนิสิตไม่ถูกต้อง</EmptyTitle>
           <EmptyDescription>
-            Please go back and enter a valid Student ID to select classes.
+            โปรดกลับไปยังหน้าล็อกอินและกรอกรหัสนิสิตของคุณใหม่อีกครั้ง
           </EmptyDescription>
         </EmptyHeader>
         <EmptyContent>
           <Button asChild>
-            <Link to="/" className="w-full">
+            <Link to="/" className="w-full" search={{ exams: exams ?? [] }}>
               Go Back to Login
             </Link>
           </Button>
@@ -139,10 +139,10 @@ function RouteComponent() {
               </TabsTrigger>
             </TabsList>
             <TabsContent value="thai">
-              <ThaiClasses
-                classes={searchedThaiClasses}
-                selectedClasses={selectedClasses}
-                setSelectedClasses={setSelectedClasses}
+              <ClassList
+                classes={filtered}
+                selected={exams}
+                setSelected={setExams}
               />
             </TabsContent>
           </Tabs>
@@ -168,7 +168,7 @@ function RouteComponent() {
             </Label>
           </div>
           <Button className="w-full" size="lg" asChild>
-            <Link to="/schedule" search={{ studentId, selectedClasses }}>
+            <Link to="/schedule" search={{ studentId, exams }}>
               ดำเนินการต่อ
             </Link>
           </Button>

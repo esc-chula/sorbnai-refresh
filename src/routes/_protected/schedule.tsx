@@ -1,68 +1,64 @@
+import { Link, createFileRoute } from '@tanstack/react-router'
+import { useSuspenseQuery } from '@tanstack/react-query'
+import { motion } from 'motion/react'
+import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import {
   Card,
-  CardHeader,
-  CardTitle,
   CardContent,
   CardFooter,
+  CardHeader,
+  CardTitle,
 } from '@/components/ui/card'
 import {
   Accordion,
+  AccordionContent,
   AccordionItem,
   AccordionTrigger,
-  AccordionContent,
 } from '@/components/ui/accordion'
-import { createFileRoute, Link } from '@tanstack/react-router'
-import { useSuspenseQuery } from '@tanstack/react-query'
-import { thaiMyExamRoomsQueryOptions } from '@/data/thai-exam-rooms'
-import { getUpcomingAndPastClasses } from '@/lib/filters'
-import { ClassCard } from '@/components/class-card'
-import { ShareScheduleButton } from '@/components/share-schedule-button'
+import { studentExamsQuery } from '@/data/thai-exam-rooms'
+import { splitExamsByDate } from '@/lib/filters'
+import { ExamCard } from '@/components/exam-card'
+import { ShareButton } from '@/components/share-button'
 import { useLocalStorage } from '@/hooks/use-local-storage'
 import { getRouter } from '@/router'
-import { motion } from 'motion/react'
-import { useState } from 'react'
 
 export const Route = createFileRoute('/_protected/schedule')({
-  component: RouteComponent,
+  component: Schedule,
 })
 
-function RouteComponent() {
-  const { studentId, selectedClasses } = Route.useSearch()
-  const [, setSelectedClassesInStorage] = useLocalStorage<string[]>(
-    'selected-classes',
+function Schedule() {
+  const { studentId, exams } = Route.useSearch()
+  const [, setStoredExams] = useLocalStorage<Array<string>>(
+    'selected-exams',
     []
   )
-  const [deletingClass, setDeletingClass] = useState<string | null>(null)
-  const { data: thaiExamRooms } = useSuspenseQuery(
-    thaiMyExamRoomsQueryOptions(studentId)
+  const [deletingExam, setDeletingExam] = useState<string | null>(null)
+  const { data: examRooms } = useSuspenseQuery(studentExamsQuery(studentId))
+  const { upcoming, past } = splitExamsByDate(
+    examRooms.filter((room) => exams.includes(room.code))
   )
-  const { upcomingClasses, pastClasses } = getUpcomingAndPastClasses(
-    thaiExamRooms.filter((room) => selectedClasses.includes(room.code))
-  )
-  const noDataClasses = selectedClasses.filter(
-    (code) => !thaiExamRooms.some((room) => room.code === code)
+  const unknownExams = exams.filter(
+    (code) => !examRooms.some((room) => room.code === code)
   )
 
   if (!studentId) {
     throw new Error('Student ID is required')
   }
 
-  const handleDeleteClass = (classCode: string) => {
-    setDeletingClass(classCode)
+  const deleteExam = (classCode: string) => {
+    setDeletingExam(classCode)
     setTimeout(() => {
-      const updatedClasses = selectedClasses.filter(
-        (code) => code !== classCode
-      )
-      setSelectedClassesInStorage(updatedClasses)
+      const updatedExams = exams.filter((code) => code !== classCode)
+      setStoredExams(updatedExams)
       getRouter().navigate({
         to: '/schedule',
         search: {
           studentId,
-          selectedClasses: updatedClasses,
+          exams: updatedExams,
         },
       })
-      setDeletingClass(null)
+      setDeletingExam(null)
     }, 400)
   }
 
@@ -82,15 +78,15 @@ function RouteComponent() {
             </CardHeader>
             <AccordionContent>
               <CardContent className="flex w-full flex-col gap-2 overflow-auto">
-                {upcomingClasses.length > 0 ? (
-                  upcomingClasses.map((c) => (
+                {upcoming.length > 0 ? (
+                  upcoming.map((c) => (
                     <motion.div
                       key={
                         c.code + c.title.replaceAll(/\s/g, '-').toLowerCase()
                       }
                       initial={{ opacity: 1, scale: 1, height: 'auto' }}
                       animate={
-                        deletingClass === c.code
+                        deletingExam === c.code
                           ? {
                               opacity: 0,
                               scale: 0.8,
@@ -102,7 +98,7 @@ function RouteComponent() {
                       }
                       transition={{ duration: 0.4 }}
                     >
-                      <ClassCard class={c} onDelete={handleDeleteClass} />
+                      <ExamCard class={c} onDelete={deleteExam} />
                     </motion.div>
                   ))
                 ) : (
@@ -122,15 +118,15 @@ function RouteComponent() {
             </CardHeader>
             <AccordionContent>
               <CardContent className="flex w-full flex-col gap-2 overflow-auto">
-                {pastClasses.length > 0 ? (
-                  pastClasses.map((c) => (
+                {past.length > 0 ? (
+                  past.map((c) => (
                     <motion.div
                       key={
                         c.code + c.title.replaceAll(/\s/g, '-').toLowerCase()
                       }
                       initial={{ opacity: 1, scale: 1, height: 'auto' }}
                       animate={
-                        deletingClass === c.code
+                        deletingExam === c.code
                           ? {
                               opacity: 0,
                               scale: 0.8,
@@ -142,7 +138,7 @@ function RouteComponent() {
                       }
                       transition={{ duration: 0.4 }}
                     >
-                      <ClassCard class={c} onDelete={handleDeleteClass} />
+                      <ExamCard class={c} onDelete={deleteExam} />
                     </motion.div>
                   ))
                 ) : (
@@ -152,7 +148,7 @@ function RouteComponent() {
             </AccordionContent>
           </AccordionItem>
         </Card>
-        {noDataClasses.length > 0 && (
+        {unknownExams.length > 0 && (
           <Card className="w-full">
             <AccordionItem value="no-data" className="w-full">
               <CardHeader>
@@ -162,12 +158,12 @@ function RouteComponent() {
               </CardHeader>
               <AccordionContent>
                 <CardContent className="flex w-full flex-col gap-2 overflow-auto">
-                  {noDataClasses.map((classInfo) => (
+                  {unknownExams.map((classInfo) => (
                     <motion.div
                       key={classInfo}
                       initial={{ opacity: 1, scale: 1, height: 'auto' }}
                       animate={
-                        deletingClass === classInfo
+                        deletingExam === classInfo
                           ? {
                               opacity: 0,
                               scale: 0.8,
@@ -184,7 +180,7 @@ function RouteComponent() {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => handleDeleteClass(classInfo)}
+                        onClick={() => deleteExam(classInfo)}
                         className="text-muted-foreground hover:text-destructive"
                       >
                         ลบ
@@ -202,13 +198,13 @@ function RouteComponent() {
           </Card>
         )}
       </Accordion>
-      <ShareScheduleButton selectedClasses={selectedClasses} />
+      <ShareButton selected={exams} />
       <Button asChild size="lg" className="w-full">
         <Link
-          to="/select-classes"
+          to="/select-exams"
           search={{
             studentId,
-            selectedClasses,
+            exams,
           }}
         >
           เลือกวิชาเพิ่ม

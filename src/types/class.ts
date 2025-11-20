@@ -1,6 +1,6 @@
 import z from 'zod'
 
-const baseClassInfoSchema = z.object({
+const baseExamClassSchema = z.object({
   date: z.string(),
   time: z.string(),
   code: z.string(),
@@ -13,31 +13,18 @@ const groupSchema = z.object({
   students: z.number(),
   range: z.string(),
 })
-const classInfoSchema = baseClassInfoSchema.extend({
+const examClassSchema = baseExamClassSchema.extend({
   group: z.array(groupSchema),
 })
-const myClassInfoSchema = baseClassInfoSchema.extend({
+const studentExamSchema = baseExamClassSchema.extend({
   group: groupSchema,
 })
-const classScheduleSchema = z.record(z.string(), classInfoSchema)
+const examScheduleSchema = z.record(z.string(), examClassSchema)
 
 type Group = z.infer<typeof groupSchema>
-type ClassInfo = z.infer<typeof classInfoSchema>
-type ClassSchedule = z.infer<typeof classScheduleSchema>
-type MyClassInfo = z.infer<typeof myClassInfoSchema>
-interface ClassInfoWithInRange extends ClassInfo {
-  inRange: boolean
-}
-interface MyClassInfoWithInRange extends MyClassInfo {
-  inRange: boolean
-}
+type ExamClass = z.infer<typeof examClassSchema> & { inRange?: boolean }
+type ExamSchedule = z.infer<typeof examScheduleSchema>
+type StudentExam = z.infer<typeof studentExamSchema> & { inRange?: boolean }
 
-export { groupSchema, classInfoSchema, classScheduleSchema, myClassInfoSchema }
-export type {
-  Group,
-  ClassInfo,
-  ClassSchedule,
-  MyClassInfo,
-  ClassInfoWithInRange,
-  MyClassInfoWithInRange,
-}
+export { groupSchema, examClassSchema, examScheduleSchema, studentExamSchema }
+export type { Group, ExamClass, ExamSchedule, StudentExam }

@@ -1,13 +1,8 @@
-import { env } from '@/env'
-import {
-  ClassSchedule,
-  ClassInfoWithInRange,
-  MyClassInfoWithInRange,
-  Group,
-} from '@/types/class'
 import { queryOptions } from '@tanstack/react-query'
+import type { ExamClass, ExamSchedule, Group, StudentExam } from '@/types/class'
+import { env } from '@/env'
 
-function isStudentInRange(studentId: string, range: string): boolean {
+function matchesStudent(studentId: string, range: string): boolean {
   const studentIdNum = parseInt(studentId, 10)
   if (isNaN(studentIdNum)) return false
 
@@ -34,56 +29,52 @@ function isStudentInRange(studentId: string, range: string): boolean {
     })
 }
 
-function mapClassesFromData(data: ClassSchedule) {
+function extractExams(data: ExamSchedule) {
   return Object.values(data).map((value) => ({ ...value }))
 }
 
-export const thaiExamRoomsQueryOptions = (studentId: string) =>
+export const examRoomsQuery = (studentId: string) =>
   queryOptions({
     queryKey: ['thai-exam-rooms', studentId],
     queryFn: async () => {
       const response = await fetch(`${env.VITE_BASE_URL}/api/thai-exam-rooms`)
-      const data: ClassSchedule = await response.json()
-      const classes = mapClassesFromData(data)
-      const classesWithInRange: ClassInfoWithInRange[] = classes.map(
-        (classInfo) => ({
-          ...classInfo,
-          inRange: classInfo.group.some(
-            (g) =>
-              g.range &&
-              typeof g.range === 'string' &&
-              isStudentInRange(studentId, g.range)
-          ),
-        })
-      )
+      const data: ExamSchedule = await response.json()
+      const classes = extractExams(data)
+      const exams: Array<ExamClass> = classes.map((classInfo) => ({
+        ...classInfo,
+        inRange: classInfo.group.some(
+          (g) =>
+            g.range &&
+            typeof g.range === 'string' &&
+            matchesStudent(studentId, g.range)
+        ),
+      }))
 
-      return classesWithInRange
+      return exams
     },
   })
 
-export const thaiMyExamRoomsQueryOptions = (studentId: string) =>
+export const studentExamsQuery = (studentId: string) =>
   queryOptions({
     queryKey: ['thai-my-exam-rooms', studentId],
     queryFn: async () => {
       const response = await fetch(`${env.VITE_BASE_URL}/api/thai-exam-rooms`)
-      const data: ClassSchedule = await response.json()
-      const classes = mapClassesFromData(data)
-      const classesWithInRange: MyClassInfoWithInRange[] = classes.map(
-        (classInfo) => {
-          const group: Group = classInfo.group.filter(
-            (g) =>
-              g.range &&
-              typeof g.range === 'string' &&
-              isStudentInRange(studentId, g.range)
-          )[0]
-          return {
-            ...classInfo,
-            group,
-            inRange: !!group,
-          }
+      const data: ExamSchedule = await response.json()
+      const classes = extractExams(data)
+      const exams: Array<StudentExam> = classes.map((classInfo) => {
+        const group: Group = classInfo.group.filter(
+          (g) =>
+            g.range &&
+            typeof g.range === 'string' &&
+            matchesStudent(studentId, g.range)
+        )[0]
+        return {
+          ...classInfo,
+          group,
+          inRange: !!group,
         }
-      )
+      })
 
-      return classesWithInRange.filter((c) => c.inRange)
+      return exams.filter((c) => c.inRange)
     },
   })

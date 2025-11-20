@@ -1,20 +1,20 @@
-import { cn } from '@/lib/utils'
 import { Button } from './ui/button'
+import { cn } from '@/lib/utils'
 
-export function ThaiClasses({
+export function ClassList({
   classes,
-  selectedClasses,
-  setSelectedClasses,
+  selected,
+  setSelected,
 }: {
-  classes: { code: string; title: string }[]
-  selectedClasses: string[]
-  setSelectedClasses: (classes: string[]) => void
+  classes: Array<{ code: string; title: string }>
+  selected: Array<string>
+  setSelected: (classes: Array<string>) => void
 }) {
-  const handleToggleSelectClass = (code: string) => {
-    if (selectedClasses.includes(code)) {
-      setSelectedClasses(selectedClasses.filter((c) => c !== code))
+  const toggleExam = (code: string) => {
+    if (selected.includes(code)) {
+      setSelected(selected.filter((c) => c !== code))
     } else {
-      setSelectedClasses([...selectedClasses, code])
+      setSelected([...selected, code])
     }
   }
 
@@ -24,10 +24,10 @@ export function ThaiClasses({
         <Button
           key={code + title.replaceAll(/\s/g, '-').toLowerCase()}
           variant="outline"
-          onClick={() => handleToggleSelectClass(code)}
+          onClick={() => toggleExam(code)}
           className={cn(
             'flex h-max w-full items-start justify-start gap-1 px-6 py-2.5 shadow-sm transition-colors duration-150 hover:underline',
-            selectedClasses.includes(code)
+            selected.includes(code)
               ? 'bg-esc-carmine-400 text-esc-carmine-50 border-esc-carmine-600 hover:bg-esc-carmine-400 hover:text-esc-carmine-50'
               : 'bg-card text-esc-carmine-400 border-esc-carmine-200 hover:bg-card hover:text-esc-carmine-400'
           )}

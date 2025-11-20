@@ -1,7 +1,7 @@
-import { ConfirmStudentIdModal } from '@/components/confirm-student-id-modal'
-import { useSyncSelectedClasses } from '@/hooks/use-sync-selected-classes'
-import { createFileRoute, Outlet, redirect } from '@tanstack/react-router'
+import { Outlet, createFileRoute, redirect } from '@tanstack/react-router'
 import z from 'zod'
+import { ConfirmIdModal } from '@/components/confirm-id-modal'
+import { useSyncExams } from '@/hooks/use-sync-exams'
 
 const searchSchema = z.object({
   studentId: z
@@ -14,29 +14,29 @@ const searchSchema = z.object({
       message: 'Student ID must end with 21',
     })
     .catch(''),
-  selectedClasses: z.array(z.string()).catch([]),
+  exams: z.array(z.string()).catch([]),
 })
 
 export const Route = createFileRoute('/_protected')({
-  component: RouteComponent,
+  component: ProtectedLayout,
   validateSearch: searchSchema,
   beforeLoad: ({ search }) => {
     if (!search.studentId || search.studentId === '') {
       throw redirect({
         to: '/',
-        search: { selectedClasses: search.selectedClasses },
+        search: { exams: search.exams },
       })
     }
   },
 })
 
-function RouteComponent() {
-  useSyncSelectedClasses()
+function ProtectedLayout() {
+  useSyncExams()
 
   return (
     <>
       <Outlet />
-      <ConfirmStudentIdModal />
+      <ConfirmIdModal />
     </>
   )
 }

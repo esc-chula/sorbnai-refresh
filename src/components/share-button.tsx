@@ -1,17 +1,15 @@
-import { Button } from './ui/button'
-import { Share2, Check, X } from 'lucide-react'
-import { motion, AnimatePresence } from 'motion/react'
+import { Check, Share2, X } from 'lucide-react'
+import { AnimatePresence, motion } from 'motion/react'
 import { useState } from 'react'
+import { Button } from './ui/button'
 
-interface ShareScheduleButtonProps {
-  selectedClasses: string[]
+interface ShareButtonProps {
+  selected: Array<string>
 }
 
 type FeedbackState = 'idle' | 'success' | 'error'
 
-export function ShareScheduleButton({
-  selectedClasses,
-}: ShareScheduleButtonProps) {
+export function ShareButton({ selected }: ShareButtonProps) {
   const [feedback, setFeedback] = useState<FeedbackState>('idle')
 
   const showFeedback = (state: FeedbackState) => {
@@ -19,17 +17,16 @@ export function ShareScheduleButton({
     setTimeout(() => setFeedback('idle'), 2000)
   }
 
-  const handleShare = async () => {
+  const share = async () => {
     const url = new URL(window.location.origin)
-    url.searchParams.set('selectedClasses', JSON.stringify(selectedClasses))
+    url.searchParams.set('exams', JSON.stringify(selected))
 
     const shareData = {
-      title: 'สอบไหน - ตารางสอบของฉัน',
-      text: `แชร์รายวิชาที่เลือก ${selectedClasses.length} วิชา`,
+      title: 'สอบไหน',
       url: url.toString(),
     }
 
-    if (navigator.share && navigator.canShare?.(shareData)) {
+    if (navigator.share && navigator.canShare(shareData)) {
       try {
         await navigator.share(shareData)
         showFeedback('success')
@@ -61,7 +58,7 @@ export function ShareScheduleButton({
       transition={{ duration: 0.4 }}
     >
       <Button
-        onClick={handleShare}
+        onClick={share}
         variant="outline"
         size="lg"
         className="w-full gap-2"

@@ -14,16 +14,22 @@ import {
 } from '@/components/ui/sidebar'
 import { getRouter } from '@/router'
 import { Button } from '@/components/ui/button'
+import { useLocalStorage } from '@/hooks/use-local-storage'
 
 export function AppSidebar() {
-  const { studentId, selectedClasses } = useSearch({
+  const { studentId, exams } = useSearch({
     strict: false,
   })
+  const [_, setStoredId] = useLocalStorage('student-id', '')
   const { toggleSidebar, isMobile } = useSidebar()
 
-  const handleLogout = () => {
+  const logout = () => {
+    setStoredId('')
     getRouter().navigate({
       to: '/',
+      search: {
+        exams: [],
+      },
     })
   }
 
@@ -62,10 +68,10 @@ export function AppSidebar() {
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild>
                     <Link
-                      to="/select-classes"
+                      to="/select-exams"
                       search={{
                         studentId,
-                        selectedClasses: selectedClasses ?? [],
+                        exams: exams ?? [],
                       }}
                     >
                       <Search />
@@ -79,7 +85,7 @@ export function AppSidebar() {
                       to="/schedule"
                       search={{
                         studentId,
-                        selectedClasses: selectedClasses ?? [],
+                        exams: exams ?? [],
                       }}
                     >
                       <Table />
@@ -96,7 +102,7 @@ export function AppSidebar() {
             <SidebarMenu>
               {studentId ? (
                 <SidebarMenuItem>
-                  <SidebarMenuButton onClick={handleLogout}>
+                  <SidebarMenuButton onClick={logout}>
                     <LogOut />
                     <span>ออกจากระบบ</span>
                   </SidebarMenuButton>
@@ -104,7 +110,7 @@ export function AppSidebar() {
               ) : (
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild>
-                    <Link to="/">
+                    <Link to="/" search={{ exams: exams ?? [] }}>
                       <LogIn />
                       <span>เข้าสู่ระบบ</span>
                     </Link>

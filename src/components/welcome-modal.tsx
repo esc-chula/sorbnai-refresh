@@ -8,20 +8,16 @@ import {
   DialogTitle,
 } from './ui/dialog'
 
-interface SharedClassesWelcomeModalProps {
+interface WelcomeModalProps {
   open: boolean
   onClose: () => void
   classCount: number
 }
 
-export function SharedClassesWelcomeModal({
-  open,
-  onClose,
-  classCount,
-}: SharedClassesWelcomeModalProps) {
+export function WelcomeModal({ open, onClose, classCount }: WelcomeModalProps) {
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[425px]" showCloseButton={false}>
         <DialogHeader>
           <DialogTitle>กรุณากรอกรหัสนิสิตของคุณ</DialogTitle>
           <DialogDescription>

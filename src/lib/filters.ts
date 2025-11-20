@@ -15,23 +15,21 @@ export function getDate({
   }) as [Date, Date]
 }
 
-export function getUpcomingAndPastClasses<
-  T extends { date: string; time: string },
->(
-  classes: T[]
+export function splitExamsByDate<T extends { date: string; time: string }>(
+  exams: Array<T>
 ): {
-  upcomingClasses: T[]
-  pastClasses: T[]
+  upcoming: Array<T>
+  past: Array<T>
 } {
   const now = new Date()
-  classes.sort((a, b) => compareAsc(getDate(a)[0], getDate(b)[0]))
+  exams.sort((a, b) => compareAsc(getDate(a)[0], getDate(b)[0]))
 
-  const upcoming: T[] = []
-  const past: T[] = []
+  const upcoming: Array<T> = []
+  const past: Array<T> = []
 
-  classes.forEach((c) => {
+  exams.forEach((c) => {
     getDate(c)[0] >= now ? upcoming.push(c) : past.push(c)
   })
 
-  return { upcomingClasses: upcoming, pastClasses: past }
+  return { upcoming, past }
 }

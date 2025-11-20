@@ -4,12 +4,12 @@ dist
 dist-ssr
 *.local
 count.txt
-.env
+.env.*
+!.env.example
 .nitro
 .tanstack
 .wrangler
 .output
 .vinxi
 todos.json
-
 public/data

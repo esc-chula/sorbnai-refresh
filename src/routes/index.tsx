@@ -1,23 +1,23 @@
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardContent,
-  CardFooter,
-} from '@/components/ui/card'
 import { createFileRoute } from '@tanstack/react-router'
 import { useForm } from '@tanstack/react-form'
 import z from 'zod'
+import { useEffect, useState } from 'react'
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
 import { Field, FieldError, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { getRouter } from '@/router'
 import { useLocalStorage } from '@/hooks/use-local-storage'
-import { SharedClassesWelcomeModal } from '@/components/shared-classes-welcome-modal'
-import { useEffect, useState } from 'react'
+import { WelcomeModal } from '@/components/welcome-modal'
 
 const searchSchema = z.object({
-  selectedClasses: z.array(z.string()).catch([]),
+  exams: z.array(z.string()).catch([]),
 })
 
 export const Route = createFileRoute('/')({
@@ -38,43 +38,34 @@ const formSchema = z.object({
 })
 
 function App() {
-  const { selectedClasses } = Route.useSearch()
-  const [studentIdInStorage, setStudentIdInStorage] = useLocalStorage(
-    'student-id',
-    ''
+  const { exams } = Route.useSearch()
+  const [storedId, setStoredId] = useLocalStorage('student-id', '')
+  const [storedExams, setStoredExams] = useLocalStorage<Array<string>>(
+    'selected-exams',
+    []
   )
-  const [selectedClassesInStorage, setSelectedClassesInStorage] =
-    useLocalStorage<string[]>('selected-classes', [])
-  const [showWelcomeModal, setShowWelcomeModal] = useState(false)
+  const [welcomeOpen, setWelcomeOpen] = useState(false)
 
   useEffect(() => {
     if (
-      studentIdInStorage &&
-      selectedClasses &&
-      selectedClasses.length > 0 &&
-      formSchema.safeParse({ studentId: studentIdInStorage }).success
+      storedId &&
+      exams.length > 0 &&
+      formSchema.safeParse({ studentId: storedId }).success
     ) {
-      const mergedClasses = Array.from(
-        new Set([...selectedClassesInStorage, ...selectedClasses])
-      )
-      setSelectedClassesInStorage(mergedClasses)
+      const mergedExams = Array.from(new Set([...storedExams, ...exams]))
+      setStoredExams(mergedExams)
       getRouter().navigate({
         to: '/schedule',
         search: {
-          studentId: studentIdInStorage,
-          selectedClasses: mergedClasses,
+          studentId: storedId,
+          exams: mergedExams,
         },
       })
-    } else if (selectedClasses && selectedClasses.length > 0) {
-      setSelectedClassesInStorage(selectedClasses)
-      setShowWelcomeModal(true)
+    } else if (exams.length > 0) {
+      setStoredExams(exams)
+      setWelcomeOpen(true)
     }
-  }, [
-    selectedClasses,
-    studentIdInStorage,
-    setSelectedClassesInStorage,
-    selectedClassesInStorage,
-  ])
+  }, [exams, storedId, setStoredExams, storedExams])
 
   const form = useForm({
     defaultValues: {
@@ -84,11 +75,11 @@ function App() {
       onSubmit: formSchema,
     },
     onSubmit: ({ value }) => {
-      setStudentIdInStorage(value.studentId)
+      setStoredId(value.studentId)
       getRouter().navigate({
-        to: '/select-classes',
+        to: '/select-exams',
         search: {
-          selectedClasses: selectedClasses ?? [],
+          exams,
           studentId: value.studentId,
         },
       })
@@ -149,10 +140,10 @@ function App() {
           </Button>
         </CardFooter>
       </Card>
-      <SharedClassesWelcomeModal
-        open={showWelcomeModal}
-        onClose={() => setShowWelcomeModal(false)}
-        classCount={selectedClasses?.length ?? 0}
+      <WelcomeModal
+        open={welcomeOpen}
+        onClose={() => setWelcomeOpen(false)}
+        classCount={exams.length}
       />
     </>
   )

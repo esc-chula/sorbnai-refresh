@@ -11,12 +11,15 @@ import {
   DropdownMenuTrigger,
 } from './ui/dropdown-menu'
 import { getRouter } from '@/router'
+import { useLocalStorage } from '@/hooks/use-local-storage'
 
 export function Header() {
-  const { studentId, selectedClasses } = useSearch({ strict: false })
+  const { studentId, exams } = useSearch({ strict: false })
+  const [_, setStoredId] = useLocalStorage('student-id', '')
 
-  const handleLogout = () => {
-    getRouter().navigate({ to: '/' })
+  const logout = () => {
+    setStoredId('')
+    getRouter().navigate({ to: '/', search: { exams: [] } })
   }
 
   return (
@@ -29,18 +32,15 @@ export function Header() {
             <>
               <Button variant="ghost" size="sm" asChild className="gap-2">
                 <Link
-                  to="/select-classes"
-                  search={{ studentId, selectedClasses: selectedClasses ?? [] }}
+                  to="/select-exams"
+                  search={{ studentId, exams: exams ?? [] }}
                 >
                   <Search className="size-4" />
                   <span>ค้นหาวิชาเรียน</span>
                 </Link>
               </Button>
               <Button variant="ghost" size="sm" asChild className="gap-2">
-                <Link
-                  to="/schedule"
-                  search={{ studentId, selectedClasses: selectedClasses ?? [] }}
-                >
+                <Link to="/schedule" search={{ studentId, exams: exams ?? [] }}>
                   <Table className="size-4" />
                   <span>ห้องสอบ</span>
                 </Link>
@@ -56,7 +56,7 @@ export function Header() {
                 <DropdownMenuContent align="end">
                   <DropdownMenuLabel>บัญชีของฉัน</DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleLogout}>
+                  <DropdownMenuItem onClick={logout}>
                     <LogOut className="size-4" />
                     <span>ออกจากระบบ</span>
                   </DropdownMenuItem>
@@ -65,7 +65,7 @@ export function Header() {
             </>
           ) : (
             <Button variant="ghost" size="sm" asChild className="gap-2">
-              <Link to="/">
+              <Link to="/" search={{ exams: exams ?? [] }}>
                 <LogIn className="size-4" />
                 <span>เข้าสู่ระบบ</span>
               </Link>

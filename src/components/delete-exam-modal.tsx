@@ -8,7 +8,7 @@ import {
   DialogTitle,
 } from './ui/dialog'
 
-interface DeleteClassConfirmationModalProps {
+interface DeleteExamModalProps {
   open: boolean
   onClose: () => void
   onConfirm: () => void
@@ -16,14 +16,14 @@ interface DeleteClassConfirmationModalProps {
   classTitle: string
 }
 
-export function DeleteClassConfirmationModal({
+export function DeleteExamModal({
   open,
   onClose,
   onConfirm,
   classCode,
   classTitle,
-}: DeleteClassConfirmationModalProps) {
-  const handleConfirm = () => {
+}: DeleteExamModalProps) {
+  const confirm = () => {
     onConfirm()
     onClose()
   }
@@ -41,7 +41,7 @@ export function DeleteClassConfirmationModal({
           <Button variant="outline" onClick={onClose}>
             ยกเลิก
           </Button>
-          <Button variant="destructive" onClick={handleConfirm}>
+          <Button variant="destructive" onClick={confirm}>
             ลบวิชา
           </Button>
         </DialogFooter>

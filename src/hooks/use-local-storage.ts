@@ -1,12 +1,10 @@
 import { useCallback, useEffect, useState } from 'react'
 
-import type { Dispatch, SetStateAction } from 'react'
-
 import { useEventCallback } from './use-callback'
 import { useEventListener } from './use-event-listener'
+import type { Dispatch, SetStateAction } from 'react'
 
 declare global {
-  // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
   interface WindowEventMap {
     'local-storage': CustomEvent
   }

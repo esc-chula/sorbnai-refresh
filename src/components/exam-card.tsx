@@ -1,9 +1,10 @@
 import { format } from 'date-fns'
 import { useMemo, useState } from 'react'
 import { th } from 'date-fns/locale'
-import { google, ics, type CalendarEvent, outlook } from 'calendar-link'
-import { Button } from './ui/button'
+import { google, ics, outlook } from 'calendar-link'
 import { Calendar, X } from 'lucide-react'
+import { Link } from '@tanstack/react-router'
+import { Button } from './ui/button'
 import {
   Drawer,
   DrawerContent,
@@ -14,24 +15,24 @@ import {
   DrawerTrigger,
 } from './ui/drawer'
 import { GoogleCalendarIcon } from './logos/google-calendar'
-import { Link } from '@tanstack/react-router'
 import { AppleLogo } from './logos/apple'
 import { OutlookLogo } from './logos/outlook'
-import { MyClassInfo } from '@/types/class'
+import { DeleteExamModal } from './delete-exam-modal'
+import type { CalendarEvent } from 'calendar-link'
+import type { StudentExam } from '@/types/class'
 import { getDate } from '@/lib/filters'
-import { DeleteClassConfirmationModal } from './delete-class-confirmation-modal'
 
 type ExamCardProps = {
-  class: Pick<MyClassInfo, 'date' | 'time' | 'title' | 'code' | 'group'>
+  class: Pick<StudentExam, 'date' | 'time' | 'title' | 'code' | 'group'>
   onDelete?: (classCode: string) => void
 }
 
-export function ClassCard({
+export function ExamCard({
   class: { date, time, title, code, group },
   onDelete,
 }: ExamCardProps) {
   const [start, end] = useMemo(() => getDate({ date, time }), [date, time])
-  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [deleteOpen, setDeleteOpen] = useState(false)
 
   const event: CalendarEvent = useMemo(
     () => ({
@@ -43,7 +44,7 @@ export function ClassCard({
     []
   )
 
-  const handleDelete = () => {
+  const deleteExam = () => {
     if (onDelete) {
       onDelete(code)
     }
@@ -56,7 +57,7 @@ export function ClassCard({
           variant="ghost"
           size="icon"
           className="text-muted-foreground hover:text-destructive absolute top-2 right-2 size-6 opacity-100 transition-all md:opacity-0 md:group-hover:opacity-100"
-          onClick={() => setShowDeleteModal(true)}
+          onClick={() => setDeleteOpen(true)}
         >
           <X className="size-4" />
         </Button>
@@ -124,10 +125,10 @@ export function ClassCard({
         </DrawerContent>
       </Drawer>
       {onDelete && (
-        <DeleteClassConfirmationModal
-          open={showDeleteModal}
-          onClose={() => setShowDeleteModal(false)}
-          onConfirm={handleDelete}
+        <DeleteExamModal
+          open={deleteOpen}
+          onClose={() => setDeleteOpen(false)}
+          onConfirm={deleteExam}
           classCode={code}
           classTitle={title}
         />

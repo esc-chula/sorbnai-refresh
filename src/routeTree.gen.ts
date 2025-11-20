@@ -12,7 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as ProtectedRouteRouteImport } from './routes/_protected/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiThaiExamRoomsRouteImport } from './routes/api/thai-exam-rooms'
-import { Route as ProtectedSelectClassesRouteImport } from './routes/_protected/select-classes'
+import { Route as ProtectedSelectExamsRouteImport } from './routes/_protected/select-exams'
 import { Route as ProtectedScheduleRouteImport } from './routes/_protected/schedule'
 
 const ProtectedRouteRoute = ProtectedRouteRouteImport.update({
@@ -29,9 +29,9 @@ const ApiThaiExamRoomsRoute = ApiThaiExamRoomsRouteImport.update({
   path: '/api/thai-exam-rooms',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ProtectedSelectClassesRoute = ProtectedSelectClassesRouteImport.update({
-  id: '/select-classes',
-  path: '/select-classes',
+const ProtectedSelectExamsRoute = ProtectedSelectExamsRouteImport.update({
+  id: '/select-exams',
+  path: '/select-exams',
   getParentRoute: () => ProtectedRouteRoute,
 } as any)
 const ProtectedScheduleRoute = ProtectedScheduleRouteImport.update({
@@ -43,13 +43,13 @@ const ProtectedScheduleRoute = ProtectedScheduleRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/schedule': typeof ProtectedScheduleRoute
-  '/select-classes': typeof ProtectedSelectClassesRoute
+  '/select-exams': typeof ProtectedSelectExamsRoute
   '/api/thai-exam-rooms': typeof ApiThaiExamRoomsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/schedule': typeof ProtectedScheduleRoute
-  '/select-classes': typeof ProtectedSelectClassesRoute
+  '/select-exams': typeof ProtectedSelectExamsRoute
   '/api/thai-exam-rooms': typeof ApiThaiExamRoomsRoute
 }
 export interface FileRoutesById {
@@ -57,20 +57,20 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_protected': typeof ProtectedRouteRouteWithChildren
   '/_protected/schedule': typeof ProtectedScheduleRoute
-  '/_protected/select-classes': typeof ProtectedSelectClassesRoute
+  '/_protected/select-exams': typeof ProtectedSelectExamsRoute
   '/api/thai-exam-rooms': typeof ApiThaiExamRoomsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/schedule' | '/select-classes' | '/api/thai-exam-rooms'
+  fullPaths: '/' | '/schedule' | '/select-exams' | '/api/thai-exam-rooms'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/schedule' | '/select-classes' | '/api/thai-exam-rooms'
+  to: '/' | '/schedule' | '/select-exams' | '/api/thai-exam-rooms'
   id:
     | '__root__'
     | '/'
     | '/_protected'
     | '/_protected/schedule'
-    | '/_protected/select-classes'
+    | '/_protected/select-exams'
     | '/api/thai-exam-rooms'
   fileRoutesById: FileRoutesById
 }
@@ -103,11 +103,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiThaiExamRoomsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_protected/select-classes': {
-      id: '/_protected/select-classes'
-      path: '/select-classes'
-      fullPath: '/select-classes'
-      preLoaderRoute: typeof ProtectedSelectClassesRouteImport
+    '/_protected/select-exams': {
+      id: '/_protected/select-exams'
+      path: '/select-exams'
+      fullPath: '/select-exams'
+      preLoaderRoute: typeof ProtectedSelectExamsRouteImport
       parentRoute: typeof ProtectedRouteRoute
     }
     '/_protected/schedule': {
@@ -122,12 +122,12 @@ declare module '@tanstack/react-router' {
 
 interface ProtectedRouteRouteChildren {
   ProtectedScheduleRoute: typeof ProtectedScheduleRoute
-  ProtectedSelectClassesRoute: typeof ProtectedSelectClassesRoute
+  ProtectedSelectExamsRoute: typeof ProtectedSelectExamsRoute
 }
 
 const ProtectedRouteRouteChildren: ProtectedRouteRouteChildren = {
   ProtectedScheduleRoute: ProtectedScheduleRoute,
-  ProtectedSelectClassesRoute: ProtectedSelectClassesRoute,
+  ProtectedSelectExamsRoute: ProtectedSelectExamsRoute,
 }
 
 const ProtectedRouteRouteWithChildren = ProtectedRouteRoute._addFileChildren(
