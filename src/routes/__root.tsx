@@ -5,7 +5,6 @@ import {
 } from '@tanstack/react-router'
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 import { TanStackDevtools } from '@tanstack/react-devtools'
-
 import TanStackQueryDevtools from '../integrations/tanstack-query/devtools'
 
 import appCss from '../styles.css?url'
@@ -35,6 +34,16 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
         rel: 'stylesheet',
         href: appCss,
       },
+      { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
+      {
+        rel: 'preconnect',
+        href: 'https://fonts.gstatic.com',
+        crossOrigin: 'anonymous',
+      },
+      {
+        rel: 'stylesheet',
+        href: 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@100;200;300;400;500;600;700&display=swap',
+      },
       {
         rel: 'icon',
         type: 'image/x-icon',
@@ -48,12 +57,26 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 
 function RootDocument({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="th">
       <head>
         <HeadContent />
+        <script
+          async
+          src={`https://www.googletagmanager.com/gtag/js?id=${import.meta.env.VITE_GTAG_ID}`}
+        />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `window.dataLayer = window.dataLayer || [];
+                    function gtag(){dataLayer.push(arguments);}
+                    gtag('js', new Date());
+                    gtag('config', '${import.meta.env.VITE_GTAG_ID}');`,
+          }}
+        />
       </head>
       <body>
-        {children}
+        <main className="flex min-h-dvh w-full bg-[url(/cloud.png)] bg-top bg-repeat">
+          {children}
+        </main>
         <TanStackDevtools
           config={{
             position: 'bottom-right',

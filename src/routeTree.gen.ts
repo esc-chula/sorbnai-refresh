@@ -9,38 +9,86 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as ProtectedRouteRouteImport } from './routes/_protected/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ApiThaiExamRoomsRouteImport } from './routes/api/thai-exam-rooms'
+import { Route as ProtectedSelectClassesRouteImport } from './routes/_protected/select-classes'
+import { Route as ProtectedScheduleRouteImport } from './routes/_protected/schedule'
 
+const ProtectedRouteRoute = ProtectedRouteRouteImport.update({
+  id: '/_protected',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiThaiExamRoomsRoute = ApiThaiExamRoomsRouteImport.update({
+  id: '/api/thai-exam-rooms',
+  path: '/api/thai-exam-rooms',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProtectedSelectClassesRoute = ProtectedSelectClassesRouteImport.update({
+  id: '/select-classes',
+  path: '/select-classes',
+  getParentRoute: () => ProtectedRouteRoute,
+} as any)
+const ProtectedScheduleRoute = ProtectedScheduleRouteImport.update({
+  id: '/schedule',
+  path: '/schedule',
+  getParentRoute: () => ProtectedRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/schedule': typeof ProtectedScheduleRoute
+  '/select-classes': typeof ProtectedSelectClassesRoute
+  '/api/thai-exam-rooms': typeof ApiThaiExamRoomsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/schedule': typeof ProtectedScheduleRoute
+  '/select-classes': typeof ProtectedSelectClassesRoute
+  '/api/thai-exam-rooms': typeof ApiThaiExamRoomsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_protected': typeof ProtectedRouteRouteWithChildren
+  '/_protected/schedule': typeof ProtectedScheduleRoute
+  '/_protected/select-classes': typeof ProtectedSelectClassesRoute
+  '/api/thai-exam-rooms': typeof ApiThaiExamRoomsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/schedule' | '/select-classes' | '/api/thai-exam-rooms'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/schedule' | '/select-classes' | '/api/thai-exam-rooms'
+  id:
+    | '__root__'
+    | '/'
+    | '/_protected'
+    | '/_protected/schedule'
+    | '/_protected/select-classes'
+    | '/api/thai-exam-rooms'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ProtectedRouteRoute: typeof ProtectedRouteRouteWithChildren
+  ApiThaiExamRoomsRoute: typeof ApiThaiExamRoomsRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/_protected': {
+      id: '/_protected'
+      path: ''
+      fullPath: ''
+      preLoaderRoute: typeof ProtectedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,11 +96,48 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/thai-exam-rooms': {
+      id: '/api/thai-exam-rooms'
+      path: '/api/thai-exam-rooms'
+      fullPath: '/api/thai-exam-rooms'
+      preLoaderRoute: typeof ApiThaiExamRoomsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_protected/select-classes': {
+      id: '/_protected/select-classes'
+      path: '/select-classes'
+      fullPath: '/select-classes'
+      preLoaderRoute: typeof ProtectedSelectClassesRouteImport
+      parentRoute: typeof ProtectedRouteRoute
+    }
+    '/_protected/schedule': {
+      id: '/_protected/schedule'
+      path: '/schedule'
+      fullPath: '/schedule'
+      preLoaderRoute: typeof ProtectedScheduleRouteImport
+      parentRoute: typeof ProtectedRouteRoute
+    }
   }
 }
 
+interface ProtectedRouteRouteChildren {
+  ProtectedScheduleRoute: typeof ProtectedScheduleRoute
+  ProtectedSelectClassesRoute: typeof ProtectedSelectClassesRoute
+}
+
+const ProtectedRouteRouteChildren: ProtectedRouteRouteChildren = {
+  ProtectedScheduleRoute: ProtectedScheduleRoute,
+  ProtectedSelectClassesRoute: ProtectedSelectClassesRoute,
+}
+
+const ProtectedRouteRouteWithChildren = ProtectedRouteRoute._addFileChildren(
+  ProtectedRouteRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ProtectedRouteRoute: ProtectedRouteRouteWithChildren,
+  ApiThaiExamRoomsRoute: ApiThaiExamRoomsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

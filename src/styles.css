@@ -2,13 +2,22 @@
 
 @import 'tw-animate-css';
 
-@custom-variant dark (&:is(.dark *));
-
 body {
   @apply m-0;
   font-family:
-    -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu',
-    'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+    'IBM Plex Sans Thai',
+    'Inter',
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    'Roboto',
+    'Oxygen',
+    'Ubuntu',
+    'Cantarell',
+    'Fira Sans',
+    'Droid Sans',
+    'Helvetica Neue',
+    sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -19,74 +28,60 @@ code {
 }
 
 :root {
+  --esc-carmine-50: hsl(354.5 31.4% 93.1%);
+  --esc-carmine-100: hsl(354.3 29.6% 86.1%);
+  --esc-carmine-200: hsl(354.3 29.6% 72.2%);
+  --esc-carmine-300: hsl(354.3 29.6% 58.2%);
+  --esc-carmine-400: hsl(354.3 37.2% 44.3%);
+  --esc-carmine-500: hsl(354.3 67.7% 30.4%);
+  --esc-carmine-600: hsl(354.3 67.7% 24.3%);
+  --esc-carmine-700: hsl(354.3 67.7% 18.2%);
+  --esc-carmine-800: hsl(354.3 67.7% 12.2%);
+  --esc-carmine-900: hsl(354.3 67.7% 6.1%);
+  --esc-neutral-50: hsl(0 0% 98%);
+  --esc-neutral-100: hsl(0 0% 96%);
+  --esc-neutral-200: hsl(0 0% 90%);
+  --esc-neutral-300: hsl(0 0% 83%);
+  --esc-neutral-400: hsl(0 0% 64%);
+  --esc-neutral-500: hsl(0 0% 45%);
+  --esc-neutral-600: hsl(0 0% 32%);
+  --esc-neutral-700: hsl(0 0% 25%);
+  --esc-neutral-800: hsl(0 0% 15%);
+  --esc-neutral-900: hsl(0 0% 9%);
+
   --background: oklch(1 0 0);
-  --foreground: oklch(0.141 0.005 285.823);
+  --foreground: hsl(0 0% 15%);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.141 0.005 285.823);
+  --card-foreground: hsl(0 0% 15%);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.141 0.005 285.823);
-  --primary: oklch(0.21 0.006 285.885);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.967 0.001 286.375);
-  --secondary-foreground: oklch(0.21 0.006 285.885);
-  --muted: oklch(0.967 0.001 286.375);
-  --muted-foreground: oklch(0.552 0.016 285.938);
-  --accent: oklch(0.967 0.001 286.375);
-  --accent-foreground: oklch(0.21 0.006 285.885);
+  --popover-foreground: hsl(0 0% 15%);
+  --primary: hsl(354.3 67.7% 30.4%);
+  --primary-foreground: hsl(354.5 31.4% 93.1%);
+  --secondary: hsl(0 0% 98%);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: hsl(0 0% 98%);
+  --muted-foreground: hsl(0 0% 45%);
+  --accent: hsl(0 0% 98%);
+  --accent-foreground: oklch(0.205 0 0);
   --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.577 0.245 27.325);
-  --border: oklch(0.92 0.004 286.32);
-  --input: oklch(0.92 0.004 286.32);
-  --ring: oklch(0.871 0.006 286.286);
+  --destructive-foreground: hsl(0 0% 98%);
+  --border: hsl(0 0% 83%);
+  --input: hsl(0 0% 83%);
+  --ring: hsl(354.3 67.7% 30.4%);
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
   --chart-4: oklch(0.828 0.189 84.429);
   --chart-5: oklch(0.769 0.188 70.08);
-  --radius: 0.625rem;
+  --radius: 0.5rem;
   --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.141 0.005 285.823);
-  --sidebar-primary: oklch(0.21 0.006 285.885);
+  --sidebar-foreground: hsl(0 0% 15%);
+  --sidebar-primary: oklch(0.205 0 0);
   --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.967 0.001 286.375);
-  --sidebar-accent-foreground: oklch(0.21 0.006 285.885);
-  --sidebar-border: oklch(0.92 0.004 286.32);
-  --sidebar-ring: oklch(0.871 0.006 286.286);
-}
-
-.dark {
-  --background: oklch(0.141 0.005 285.823);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.141 0.005 285.823);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.141 0.005 285.823);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.985 0 0);
-  --primary-foreground: oklch(0.21 0.006 285.885);
-  --secondary: oklch(0.274 0.006 286.033);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.274 0.006 286.033);
-  --muted-foreground: oklch(0.705 0.015 286.067);
-  --accent: oklch(0.274 0.006 286.033);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.396 0.141 25.723);
-  --destructive-foreground: oklch(0.637 0.237 25.331);
-  --border: oklch(0.274 0.006 286.033);
-  --input: oklch(0.274 0.006 286.033);
-  --ring: oklch(0.442 0.017 285.786);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.21 0.006 285.885);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.274 0.006 286.033);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(0.274 0.006 286.033);
-  --sidebar-ring: oklch(0.442 0.017 285.786);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
 }
 
 @theme inline {
@@ -126,6 +121,27 @@ code {
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+
+  --color-esc-carmine-50: var(--esc-carmine-50);
+  --color-esc-carmine-100: var(--esc-carmine-100);
+  --color-esc-carmine-200: var(--esc-carmine-200);
+  --color-esc-carmine-300: var(--esc-carmine-300);
+  --color-esc-carmine-400: var(--esc-carmine-400);
+  --color-esc-carmine-500: var(--esc-carmine-500);
+  --color-esc-carmine-600: var(--esc-carmine-600);
+  --color-esc-carmine-700: var(--esc-carmine-700);
+  --color-esc-carmine-800: var(--esc-carmine-800);
+  --color-esc-carmine-900: var(--esc-carmine-900);
+  --color-esc-neutral-50: var(--esc-neutral-50);
+  --color-esc-neutral-100: var(--esc-neutral-100);
+  --color-esc-neutral-200: var(--esc-neutral-200);
+  --color-esc-neutral-300: var(--esc-neutral-300);
+  --color-esc-neutral-400: var(--esc-neutral-400);
+  --color-esc-neutral-500: var(--esc-neutral-500);
+  --color-esc-neutral-600: var(--esc-neutral-600);
+  --color-esc-neutral-700: var(--esc-neutral-700);
+  --color-esc-neutral-800: var(--esc-neutral-800);
+  --color-esc-neutral-900: var(--esc-neutral-900);
 }
 
 @layer base {
