@@ -1,6 +1,6 @@
 import { ConfirmStudentIdModal } from '@/components/confirm-student-id-modal'
 import { useSyncSelectedClasses } from '@/hooks/use-sync-selected-classes'
-import { createFileRoute, Outlet } from '@tanstack/react-router'
+import { createFileRoute, Outlet, redirect } from '@tanstack/react-router'
 import z from 'zod'
 
 const searchSchema = z.object({
@@ -20,6 +20,14 @@ const searchSchema = z.object({
 export const Route = createFileRoute('/_protected')({
   component: RouteComponent,
   validateSearch: searchSchema,
+  beforeLoad: ({ search }) => {
+    if (!search.studentId || search.studentId === '') {
+      throw redirect({
+        to: '/',
+        search: { selectedClasses: search.selectedClasses },
+      })
+    }
+  },
 })
 
 function RouteComponent() {

@@ -85,6 +85,8 @@ code {
 }
 
 @theme inline {
+  --font-sans: 'IBM Plex Sans Thai', 'Inter', sans-serif;
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);

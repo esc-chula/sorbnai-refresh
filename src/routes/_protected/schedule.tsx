@@ -17,6 +17,10 @@ import { useSuspenseQuery } from '@tanstack/react-query'
 import { thaiMyExamRoomsQueryOptions } from '@/data/thai-exam-rooms'
 import { getUpcomingAndPastClasses } from '@/lib/filters'
 import { ClassCard } from '@/components/class-card'
+import { ShareScheduleButton } from '@/components/share-schedule-button'
+import { useLocalStorage } from '@/hooks/use-local-storage'
+import { getRouter } from '@/router'
+import { toast } from 'sonner'
 
 export const Route = createFileRoute('/_protected/schedule')({
   component: RouteComponent,
@@ -24,6 +28,10 @@ export const Route = createFileRoute('/_protected/schedule')({
 
 function RouteComponent() {
   const { studentId, selectedClasses } = Route.useSearch()
+  const [, setSelectedClassesInStorage] = useLocalStorage<string[]>(
+    'selected-classes',
+    []
+  )
   const { data: thaiExamRooms } = useSuspenseQuery(
     thaiMyExamRoomsQueryOptions(studentId)
   )
@@ -36,6 +44,19 @@ function RouteComponent() {
 
   if (!studentId) {
     throw new Error('Student ID is required')
+  }
+
+  const handleDeleteClass = (classCode: string) => {
+    const updatedClasses = selectedClasses.filter((code) => code !== classCode)
+    setSelectedClassesInStorage(updatedClasses)
+    getRouter().navigate({
+      to: '/schedule',
+      search: {
+        studentId,
+        selectedClasses: updatedClasses,
+      },
+    })
+    toast.success('ลบวิชาเรียบร้อยแล้ว')
   }
 
   return (
@@ -61,6 +82,7 @@ function RouteComponent() {
                         c.code + c.title.replaceAll(/\s/g, '-').toLowerCase()
                       }
                       class={c}
+                      onDelete={handleDeleteClass}
                     />
                   ))
                 ) : (
@@ -87,6 +109,7 @@ function RouteComponent() {
                         c.code + c.title.replaceAll(/\s/g, '-').toLowerCase()
                       }
                       class={c}
+                      onDelete={handleDeleteClass}
                     />
                   ))
                 ) : (
@@ -107,8 +130,19 @@ function RouteComponent() {
               <AccordionContent>
                 <CardContent className="flex w-full flex-col gap-2 overflow-auto">
                   {noDataClasses.map((classInfo) => (
-                    <div key={classInfo} className="flex items-center gap-2">
+                    <div
+                      key={classInfo}
+                      className="border-border group relative flex items-center justify-between rounded-lg border px-4 py-2 shadow-sm"
+                    >
                       <span>{classInfo}</span>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDeleteClass(classInfo)}
+                        className="text-muted-foreground hover:text-destructive"
+                      >
+                        ลบ
+                      </Button>
                     </div>
                   ))}
                 </CardContent>
@@ -122,6 +156,7 @@ function RouteComponent() {
           </Card>
         )}
       </Accordion>
+      <ShareScheduleButton selectedClasses={selectedClasses} />
       <Button asChild size="lg" className="w-full">
         <Link
           to="/select-classes"

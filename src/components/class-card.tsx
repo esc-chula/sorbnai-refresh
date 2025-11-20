@@ -1,9 +1,9 @@
 import { format } from 'date-fns'
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { th } from 'date-fns/locale'
 import { google, ics, type CalendarEvent, outlook } from 'calendar-link'
 import { Button } from './ui/button'
-import { Calendar } from 'lucide-react'
+import { Calendar, X } from 'lucide-react'
 import {
   Drawer,
   DrawerContent,
@@ -19,15 +19,19 @@ import { AppleLogo } from './logos/apple'
 import { OutlookLogo } from './logos/outlook'
 import { MyClassInfo } from '@/types/class'
 import { getDate } from '@/lib/filters'
+import { DeleteClassConfirmationModal } from './delete-class-confirmation-modal'
 
 type ExamCardProps = {
   class: Pick<MyClassInfo, 'date' | 'time' | 'title' | 'code' | 'group'>
+  onDelete?: (classCode: string) => void
 }
 
 export function ClassCard({
   class: { date, time, title, code, group },
+  onDelete,
 }: ExamCardProps) {
   const [start, end] = useMemo(() => getDate({ date, time }), [date, time])
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
 
   const event: CalendarEvent = useMemo(
     () => ({
@@ -39,8 +43,24 @@ export function ClassCard({
     []
   )
 
+  const handleDelete = () => {
+    if (onDelete) {
+      onDelete(code)
+    }
+  }
+
   return (
-    <div className="border-border group flex size-full flex-col gap-1 rounded-lg border px-6 py-2.5 text-base shadow-sm">
+    <div className="border-border group relative flex size-full flex-col gap-1 rounded-lg border px-6 py-2.5 text-base shadow-sm">
+      {onDelete && (
+        <Button
+          variant="ghost"
+          size="icon"
+          className="text-muted-foreground hover:text-destructive absolute top-2 right-2 size-6 opacity-100 transition-all md:opacity-0 md:group-hover:opacity-100"
+          onClick={() => setShowDeleteModal(true)}
+        >
+          <X className="size-4" />
+        </Button>
+      )}
       <h2 className="text-esc-carmine-500 w-full font-semibold">
         {code} {title}
       </h2>
@@ -103,6 +123,15 @@ export function ClassCard({
           </DrawerFooter>
         </DrawerContent>
       </Drawer>
+      {onDelete && (
+        <DeleteClassConfirmationModal
+          open={showDeleteModal}
+          onClose={() => setShowDeleteModal(false)}
+          onConfirm={handleDelete}
+          classCode={code}
+          classTitle={title}
+        />
+      )}
     </div>
   )
 }
