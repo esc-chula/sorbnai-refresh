@@ -42,7 +42,10 @@ function App() {
       setValue(value.studentId)
       getRouter().navigate({
         to: '/select-classes',
-        search: value,
+        search: (s) => ({
+          selectedClasses: s.selectedClasses ?? [],
+          studentId: value.studentId,
+        }),
       })
     },
   })

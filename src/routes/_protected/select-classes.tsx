@@ -42,6 +42,7 @@ function RouteComponent() {
     thaiExamRoomsQueryOptions(studentId)
   )
   const [showMode, setShowMode] = useState<ShowMode>('in-range')
+
   const thaiClasses = useMemo(
     () =>
       thaiExamRooms.filter(
