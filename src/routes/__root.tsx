@@ -13,7 +13,6 @@ import type { QueryClient } from '@tanstack/react-query'
 import { SidebarProvider } from '@/components/ui/sidebar'
 import { AppSidebar } from '@/components/app-sidebar'
 import { Header } from '@/components/header'
-import { Toaster } from '@/components/ui/sonner'
 
 interface MyRouterContext {
   queryClient: QueryClient
@@ -84,7 +83,6 @@ function RootDocument({ children }: { children: React.ReactNode }) {
             {children}
           </main>
           <AppSidebar />
-          <Toaster richColors />
         </SidebarProvider>
         <TanStackDevtools
           config={{

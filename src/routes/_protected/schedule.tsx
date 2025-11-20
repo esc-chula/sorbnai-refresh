@@ -20,7 +20,8 @@ import { ClassCard } from '@/components/class-card'
 import { ShareScheduleButton } from '@/components/share-schedule-button'
 import { useLocalStorage } from '@/hooks/use-local-storage'
 import { getRouter } from '@/router'
-import { toast } from 'sonner'
+import { motion } from 'motion/react'
+import { useState } from 'react'
 
 export const Route = createFileRoute('/_protected/schedule')({
   component: RouteComponent,
@@ -32,6 +33,7 @@ function RouteComponent() {
     'selected-classes',
     []
   )
+  const [deletingClass, setDeletingClass] = useState<string | null>(null)
   const { data: thaiExamRooms } = useSuspenseQuery(
     thaiMyExamRoomsQueryOptions(studentId)
   )
@@ -47,16 +49,21 @@ function RouteComponent() {
   }
 
   const handleDeleteClass = (classCode: string) => {
-    const updatedClasses = selectedClasses.filter((code) => code !== classCode)
-    setSelectedClassesInStorage(updatedClasses)
-    getRouter().navigate({
-      to: '/schedule',
-      search: {
-        studentId,
-        selectedClasses: updatedClasses,
-      },
-    })
-    toast.success('ลบวิชาเรียบร้อยแล้ว')
+    setDeletingClass(classCode)
+    setTimeout(() => {
+      const updatedClasses = selectedClasses.filter(
+        (code) => code !== classCode
+      )
+      setSelectedClassesInStorage(updatedClasses)
+      getRouter().navigate({
+        to: '/schedule',
+        search: {
+          studentId,
+          selectedClasses: updatedClasses,
+        },
+      })
+      setDeletingClass(null)
+    }, 400)
   }
 
   return (
@@ -77,13 +84,26 @@ function RouteComponent() {
               <CardContent className="flex w-full flex-col gap-2 overflow-auto">
                 {upcomingClasses.length > 0 ? (
                   upcomingClasses.map((c) => (
-                    <ClassCard
+                    <motion.div
                       key={
                         c.code + c.title.replaceAll(/\s/g, '-').toLowerCase()
                       }
-                      class={c}
-                      onDelete={handleDeleteClass}
-                    />
+                      initial={{ opacity: 1, scale: 1, height: 'auto' }}
+                      animate={
+                        deletingClass === c.code
+                          ? {
+                              opacity: 0,
+                              scale: 0.8,
+                              height: 0,
+                              marginTop: 0,
+                              marginBottom: 0,
+                            }
+                          : { opacity: 1, scale: 1, height: 'auto' }
+                      }
+                      transition={{ duration: 0.4 }}
+                    >
+                      <ClassCard class={c} onDelete={handleDeleteClass} />
+                    </motion.div>
                   ))
                 ) : (
                   <span>ไม่มีวิชาที่กำลังจะสอบ</span>
@@ -104,13 +124,26 @@ function RouteComponent() {
               <CardContent className="flex w-full flex-col gap-2 overflow-auto">
                 {pastClasses.length > 0 ? (
                   pastClasses.map((c) => (
-                    <ClassCard
+                    <motion.div
                       key={
                         c.code + c.title.replaceAll(/\s/g, '-').toLowerCase()
                       }
-                      class={c}
-                      onDelete={handleDeleteClass}
-                    />
+                      initial={{ opacity: 1, scale: 1, height: 'auto' }}
+                      animate={
+                        deletingClass === c.code
+                          ? {
+                              opacity: 0,
+                              scale: 0.8,
+                              height: 0,
+                              marginTop: 0,
+                              marginBottom: 0,
+                            }
+                          : { opacity: 1, scale: 1, height: 'auto' }
+                      }
+                      transition={{ duration: 0.4 }}
+                    >
+                      <ClassCard class={c} onDelete={handleDeleteClass} />
+                    </motion.div>
                   ))
                 ) : (
                   <span>ไม่มีวิชาที่สอบไปแล้ว</span>
@@ -130,8 +163,21 @@ function RouteComponent() {
               <AccordionContent>
                 <CardContent className="flex w-full flex-col gap-2 overflow-auto">
                   {noDataClasses.map((classInfo) => (
-                    <div
+                    <motion.div
                       key={classInfo}
+                      initial={{ opacity: 1, scale: 1, height: 'auto' }}
+                      animate={
+                        deletingClass === classInfo
+                          ? {
+                              opacity: 0,
+                              scale: 0.8,
+                              height: 0,
+                              marginTop: 0,
+                              marginBottom: 0,
+                            }
+                          : { opacity: 1, scale: 1, height: 'auto' }
+                      }
+                      transition={{ duration: 0.4 }}
                       className="border-border group relative flex items-center justify-between rounded-lg border px-4 py-2 shadow-sm"
                     >
                       <span>{classInfo}</span>
@@ -143,7 +189,7 @@ function RouteComponent() {
                       >
                         ลบ
                       </Button>
-                    </div>
+                    </motion.div>
                   ))}
                 </CardContent>
                 <CardFooter>
