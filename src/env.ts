@@ -18,10 +18,14 @@ export const env = createEnv({
   },
 
   /**
-   * What object holds the environment variables at runtime. This is usually
-   * `process.env` or `import.meta.env`.
+   * What object holds the environment variables at runtime.
+   * Server vars use process.env, client vars use import.meta.env
    */
-  runtimeEnv: import.meta.env,
+  runtimeEnv: {
+    FILE_PATH: process.env.FILE_PATH,
+    VITE_GTAG_ID: import.meta.env.VITE_GTAG_ID,
+    VITE_BASE_URL: import.meta.env.VITE_BASE_URL,
+  },
 
   /**
    * By default, this library will feed the environment variables directly to
