@@ -65,7 +65,7 @@ function App() {
       setStoredExams(exams)
       setWelcomeOpen(true)
     }
-  }, [exams, storedId, setStoredExams, storedExams])
+  }, [])
 
   const form = useForm({
     defaultValues: {
