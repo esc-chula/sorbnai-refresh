@@ -32,9 +32,7 @@ const formSchema = z.object({
     .refine((val) => /^\d{10}$/.test(val), {
       message: 'Student ID must be only digits',
     })
-    .refine((val) => val.endsWith('21'), {
-      message: 'Student ID must end with 21',
-    }),
+    ,
 })
 
 function App() {
