@@ -58,6 +58,18 @@ function Schedule() {
       </Card>
 
       <ExamTable exams={examRooms} />
+
+      <p className="text-muted-foreground w-full text-center text-sm">
+        หากมีปัญหาในการใช้งานหรือห้องสอบ แจ้งมาที่ Line ID:{' '}
+        <a
+          href="https://lin.ee/TOE5OtU"
+          target="_blank"
+          rel="noreferrer"
+          className="text-esc-carmine-500 font-semibold underline underline-offset-2"
+        >
+          @escchula
+        </a>
+      </p>
     </div>
   )
 }
