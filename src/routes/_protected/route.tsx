@@ -1,7 +1,6 @@
 import { Outlet, createFileRoute, redirect } from '@tanstack/react-router'
 import z from 'zod'
 import { ConfirmIdModal } from '@/components/confirm-id-modal'
-import { useSyncExams } from '@/hooks/use-sync-exams'
 
 const searchSchema = z.object({
   studentId: z
@@ -11,7 +10,6 @@ const searchSchema = z.object({
       message: 'Student ID must be only digits',
     })
     .catch(''),
-  exams: z.array(z.string()).catch([]),
 })
 
 export const Route = createFileRoute('/_protected')({
@@ -21,15 +19,12 @@ export const Route = createFileRoute('/_protected')({
     if (!search.studentId || search.studentId === '') {
       throw redirect({
         to: '/',
-        search: { exams: search.exams },
       })
     }
   },
 })
 
 function ProtectedLayout() {
-  useSyncExams()
-
   return (
     <>
       <Outlet />
