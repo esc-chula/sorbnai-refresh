@@ -10,8 +10,6 @@ import TanStackQueryDevtools from '../integrations/tanstack-query/devtools'
 import appCss from '../styles.css?url'
 
 import type { QueryClient } from '@tanstack/react-query'
-import { SidebarProvider } from '@/components/ui/sidebar'
-import { AppSidebar } from '@/components/app-sidebar'
 import { Header } from '@/components/header'
 
 interface MyRouterContext {
@@ -77,13 +75,10 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         />
       </head>
       <body>
-        <SidebarProvider>
-          <main className="flex min-h-dvh w-full flex-col bg-[url(/cloud.png)] bg-top bg-repeat">
-            <Header />
-            {children}
-          </main>
-          <AppSidebar />
-        </SidebarProvider>
+        <main className="flex min-h-dvh w-full flex-col bg-[url(/cloud.png)] bg-top bg-repeat">
+          <Header />
+          {children}
+        </main>
         <TanStackDevtools
           config={{
             position: 'bottom-right',

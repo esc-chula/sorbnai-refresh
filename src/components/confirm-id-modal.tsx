@@ -13,7 +13,7 @@ import { useLocalStorage } from '@/hooks/use-local-storage'
 
 export function ConfirmIdModal() {
   const [storedId, setStoredId] = useLocalStorage('student-id', '')
-  const { studentId: urlId, exams } = useSearch({
+  const { studentId: urlId } = useSearch({
     strict: false,
   })
   const [open, setOpen] = useState(storedId !== urlId)
@@ -37,7 +37,7 @@ export function ConfirmIdModal() {
         </DialogHeader>
         <DialogFooter>
           <Button variant="outline" asChild>
-            <Link to="/" search={{ exams: exams ?? [] }}>
+            <Link to="/">
               นี่ไม่ใช่รหัสนิสิตของฉัน
             </Link>
           </Button>
