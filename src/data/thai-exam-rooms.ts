@@ -17,11 +17,16 @@ function extractExams(data: ExamSchedule) {
   return Object.values(data).map((value) => ({ ...value }))
 }
 
+function getThaiExamRoomsUrl() {
+  if (typeof window !== 'undefined') return '/api/thai-exam-rooms'
+  return `${env.VITE_BASE_URL}/api/thai-exam-rooms`
+}
+
 export const studentExamsQuery = (studentId: string) =>
   queryOptions({
     queryKey: ['thai-my-exam-rooms', studentId],
     queryFn: async () => {
-      const response = await fetch(`${env.VITE_BASE_URL}/api/thai-exam-rooms`)
+      const response = await fetch(getThaiExamRoomsUrl())
       const data: ExamSchedule = await response.json()
       const classes = extractExams(data)
       const exams: Array<StudentExam> = []

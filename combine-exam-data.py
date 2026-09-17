@@ -55,9 +55,33 @@ def load_json(path: str) -> Any:
         return json.load(file, object_pairs_hook=OrderedDict)
 
 
-def build_student_list(student_ids: Iterable[str]) -> List[Dict[str, Any]]:
+def build_student_list(
+    student_ids: Iterable[str],
+    student_seats: Iterable[Dict[str, Any]] = (),
+) -> List[Dict[str, Any]]:
     students = []
-    for seat, student_id in enumerate(student_ids, start=1):
+    explicit_seats = list(student_seats)
+    if explicit_seats:
+        entries = ((entry.get("seat"), entry.get("id")) for entry in explicit_seats)
+    else:
+        entries = ((seat, student_id) for seat, student_id in enumerate(student_ids, start=1))
+
+    for entry in explicit_seats:
+        seat = entry.get("seat")
+        student_id = entry.get("id")
+        students.append(
+            {
+                "id": clean(student_id),
+                "name": clean(entry.get("name")),
+                "seat": seat,
+                "withdrawn": False,
+            }
+        )
+
+    if explicit_seats:
+        return students
+
+    for seat, student_id in entries:
         students.append(
             {
                 "id": clean(student_id),
@@ -80,11 +104,12 @@ def empty_group(group: Dict[str, Any]) -> Dict[str, Any]:
 
 def roster_group(group: Dict[str, Any], count_from_list: bool) -> Dict[str, Any]:
     student_ids = [clean(student_id) for student_id in group.get("student_ids", []) if clean(student_id)]
+    student_seats = group.get("student_seats", [])
     return {
         "building": clean(group.get("building")),
         "room": clean(group.get("room")),
         "students": len(student_ids) if count_from_list else int(group.get("students", 0) or 0),
-        "student_list": build_student_list(student_ids),
+        "student_list": build_student_list(student_ids, student_seats),
     }
 
 
@@ -126,10 +151,23 @@ def iter_roster_courses(paths: Iterable[str]) -> Iterable[Tuple[str, Dict[str, A
             yield clean(code), course, path
 
 
+def collect_student_names(roster_paths: Iterable[str]) -> Dict[str, str]:
+    names: Dict[str, str] = {}
+    for _, roster_course, _ in iter_roster_courses(roster_paths):
+        for group in roster_course.get("groups", []):
+            for student in group.get("student_seats", []):
+                student_id = clean(student.get("id"))
+                name = clean(student.get("name"))
+                if student_id and name and student_id not in names:
+                    names[student_id] = name
+    return names
+
+
 def apply_roster_courses(
     schedule: "OrderedDict[str, Dict[str, Any]]",
     roster_paths: Iterable[str],
     count_from_list: bool,
+    student_names: Dict[str, str],
 ) -> List[str]:
     warnings = []
 
@@ -141,6 +179,20 @@ def apply_roster_courses(
             roster_group(group, count_from_list=count_from_list)
             for group in roster_course.get("groups", [])
         ]
+
+        existing_names = {
+            student["id"]: student["name"]
+            for group in schedule.get(code, {}).get("group", [])
+            for student in group.get("student_list", [])
+            if student.get("id") and student.get("name")
+        }
+        for group in roster_groups:
+            for student in group["student_list"]:
+                if not student["name"]:
+                    student["name"] = (
+                        existing_names.get(student["id"])
+                        or student_names.get(student["id"], "")
+                    )
 
         if code not in schedule:
             schedule[code] = {
@@ -186,11 +238,14 @@ def write_json(path: str, data: Dict[str, Any]) -> None:
 def build_output(args: argparse.Namespace) -> Tuple[Dict[str, Any], List[str]]:
     schedule = make_base_schedule(args.schedule)
     warnings = []
+    roster_paths = [args.roster_json, args.pdf_roster_json]
+    student_names = collect_student_names(roster_paths)
     warnings.extend(
         apply_roster_courses(
             schedule,
-            [args.roster_json, args.pdf_roster_json],
+            roster_paths,
             count_from_list=args.count_from_list,
+            student_names=student_names,
         )
     )
     return schedule, warnings

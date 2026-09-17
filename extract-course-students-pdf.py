@@ -60,11 +60,142 @@ def decoded_pdf_streams(path: str) -> List[str]:
     streams = []
     for match in re.finditer(rb"stream\r?\n(.*?)\r?\nendstream", data, re.S):
         raw = match.group(1)
-        try:
-            streams.append(zlib.decompress(raw).decode("latin1", "ignore"))
-        except Exception:
-            continue
+        for offset in range(min(8, len(raw))):
+            try:
+                streams.append(zlib.decompress(raw[offset:]).decode("latin1", "ignore"))
+                break
+            except Exception:
+                continue
     return streams
+
+
+def decoded_pdf_object(path: str, object_number: int) -> str:
+    """Decode one standalone Flate-compressed PDF object."""
+    data = open(path, "rb").read()
+    marker = (str(object_number) + " 0 obj").encode("ascii")
+    object_start = data.find(marker)
+    if object_start < 0:
+        return ""
+
+    stream_start = data.find(b"stream", object_start)
+    stream_end = data.find(b"endstream", stream_start)
+    if stream_start < 0 or stream_end < 0:
+        return ""
+
+    compressed = data[stream_start + 7:stream_end]
+    for offset in range(min(8, len(compressed))):
+        try:
+            return zlib.decompress(compressed[offset:]).decode("latin1", "ignore")
+        except zlib.error:
+            continue
+    return ""
+
+
+def parse_to_unicode_cmap(text: str) -> Dict[int, str]:
+    """Parse the bfchar/bfrange entries used by the embedded Thai fonts."""
+    mapping: Dict[int, str] = {}
+
+    for source, target in re.findall(
+        r"<([0-9A-Fa-f]+)>\s+<([0-9A-Fa-f]+)>", text
+    ):
+        mapping[int(source, 16)] = chr(int(target, 16))
+
+    for source_start, source_end, target_start in re.findall(
+        r"<([0-9A-Fa-f]+)>\s+<([0-9A-Fa-f]+)>\s+<([0-9A-Fa-f]+)>",
+        text,
+    ):
+        start = int(source_start, 16)
+        end = int(source_end, 16)
+        target = int(target_start, 16)
+        for source in range(start, end + 1):
+            mapping[source] = chr(target + source - start)
+
+    for source_start, source_end, targets in re.findall(
+        r"<([0-9A-Fa-f]+)>\s+<([0-9A-Fa-f]+)>\s+\[([^]]+)\]",
+        text,
+    ):
+        start = int(source_start, 16)
+        values = re.findall(r"<([0-9A-Fa-f]+)>", targets)
+        for offset, target in enumerate(values):
+            mapping[start + offset] = chr(int(target, 16))
+
+    return mapping
+
+
+def pdf_name_cmap(path: str, pages: List[Dict[str, Any]]) -> Dict[int, str]:
+    """Choose the embedded Unicode map that decodes the name column."""
+    candidates = [
+        parse_to_unicode_cmap(stream)
+        for stream in decoded_pdf_streams(path)
+        if "begincmap" in stream
+    ]
+    if not candidates:
+        return {}
+
+    name_blocks = []
+    for block in re.findall(r"BT(.*?)ET", "\n".join(pages[0].get("texts", [])), re.S):
+        tm = re.search(r"1 0 0 1 ([0-9.]+) ([0-9.]+) Tm", block)
+        if not tm or not 220 <= float(tm.group(1)) <= 400:
+            continue
+        name_blocks.extend(re.findall(r"<([0-9A-Fa-f ]+)>\s*T[Jj]", block))
+
+    def score(cmap: Dict[int, str]) -> int:
+        decoded = "".join(decode_hex_pdf_text(value, cmap) for value in name_blocks)
+        return sum(1 for char in decoded if "\u0e00" <= char <= "\u0e7f")
+
+    return max(candidates, key=score)
+
+
+def decode_hex_pdf_text(value: str, cmap: Dict[int, str]) -> str:
+    try:
+        raw = bytes.fromhex(value)
+    except ValueError:
+        return ""
+
+    characters = []
+    for index in range(0, len(raw), 2):
+        code = int.from_bytes(raw[index:index + 2], "big")
+        characters.append(cmap.get(code, ""))
+    return "".join(characters)
+
+
+def extract_page_student_records(
+    page: Dict[str, Any], cmap: Dict[int, str]
+) -> List[Dict[str, str]]:
+    """Pair each printed ID with the name rendered on the same PDF row."""
+    ids_by_y: Dict[float, str] = {}
+    names_by_y: Dict[float, List[Tuple[float, str]]] = {}
+
+    for text in page.get("texts", []):
+        for block in re.findall(r"BT(.*?)ET", text, re.S):
+            tm = re.search(r"1 0 0 1 ([0-9.]+) ([0-9.]+) Tm", block)
+            if not tm:
+                continue
+            x = float(tm.group(1))
+            y = round(float(tm.group(2)), 2)
+
+            if "/F5" in block and 130 <= x <= 180:
+                for payload in re.findall(r"\[([^]]+)\]\s*TJ", block):
+                    chunks = re.findall(r"\((\d+)\)", payload)
+                    student_id = "".join(chunks)
+                    if is_student_id_candidate(student_id):
+                        ids_by_y[y] = student_id
+
+            if "/F6" in block and 220 <= x <= 400:
+                decoded = []
+                for value in re.findall(r"<([0-9A-Fa-f ]+)>\s*T[Jj]", block):
+                    decoded.append(decode_hex_pdf_text(value, cmap))
+                name = clean("".join(decoded))
+                if name:
+                    names_by_y.setdefault(y, []).append((x, name))
+
+    records = []
+    for y in sorted(ids_by_y, reverse=True):
+        name = "".join(value for _, value in sorted(names_by_y.get(y, [])))
+        if name.startswith("นส") and len(name) > 2:
+            name = "นส " + name[2:]
+        records.append({"id": ids_by_y[y], "name": clean(name)})
+    return records
 
 
 def literal_strings(text: str) -> List[str]:
@@ -341,10 +472,15 @@ def extract_pdf_course_data(path: str, schedule_course: Dict[str, Any]) -> Dict[
     groups_by_room: "OrderedDict[Tuple[str, str], Dict[str, Any]]" = OrderedDict()
     all_ids: Set[str] = set()
     pdf_time = ""
+    pages = split_pdf_pages(path, course_code)
+    name_cmap = pdf_name_cmap(path, pages)
 
-    for page in split_pdf_pages(path, course_code):
+    for page in pages:
         header = parse_pdf_room_header(page.get("literals", []))
-        page_ids = extract_page_student_ids(page)
+        page_records = extract_page_student_records(page, name_cmap)
+        page_ids = [record["id"] for record in page_records]
+        if not page_ids:
+            page_ids = extract_page_student_ids(page)
         if not page_ids:
             continue
 
@@ -359,12 +495,24 @@ def extract_pdf_course_data(path: str, schedule_course: Dict[str, Any]) -> Dict[
                 "students": 0,
                 "range": "",
                 "student_ids": [],
+                "student_seats": [],
             }
 
         group_ids = groups_by_room[key]["student_ids"]
+        page_names = {
+            record["id"]: record["name"]
+            for record in page_records
+        }
         for student_id in page_ids:
             if student_id not in group_ids:
                 group_ids.append(student_id)
+                groups_by_room[key]["student_seats"].append(
+                    {
+                        "id": student_id,
+                        "name": page_names.get(student_id, ""),
+                        "seat": len(groups_by_room[key]["student_seats"]) + 1,
+                    }
+                )
             all_ids.add(student_id)
 
     groups = []
