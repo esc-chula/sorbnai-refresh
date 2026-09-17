@@ -13,3 +13,15 @@ count.txt
 .vinxi
 todos.json
 public/data
+
+# Raw exam roster/schedule uploads
+src/data/*.xlsx
+src/data/*.xls
+src/data/*.pdf
+
+# Generated exam data outputs
+sheet.json
+sheet-range.json
+course-students.json
+course-students-pdf.json
+public/sheet.json
